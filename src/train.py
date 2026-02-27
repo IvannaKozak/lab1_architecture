@@ -43,6 +43,7 @@ from sklearn.ensemble import RandomForestClassifier
 # dvc add data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
 # git add data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv.dvc data/raw/.gitignore
 
+print("DVC rerun check")
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train Telco Customer Churn model with MLflow logging")
