@@ -1,0 +1,16 @@
+stages:
+  prepare:
+    cmd: python src/prepare.py data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv data/prepared --target-col Churn --test-size 0.2 --random-state 42
+    deps:
+      - data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
+      - src/prepare.py
+    outs:
+      - data/prepared
+
+  train:
+    cmd: python src/train.py data/prepared data/models --target-col Churn --id-col customerID --random-state 42 --experiment-name Telco_Churn_Lab1 --run-name dvc_pipeline_run
+    deps:
+      - data/prepared
+      - src/train.py
+    outs:
+      - data/models

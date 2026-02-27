@@ -1,0 +1,40 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/prepare.py data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv 
+      data/prepared --target-col Churn --test-size 0.2 --random-state 42
+    deps:
+    - path: data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
+      hash: md5
+      md5: 0f9de68e012bd3aed5fa7cdc9fc421af
+      size: 977501
+    - path: src/prepare.py
+      hash: md5
+      md5: d587b9614eaed2b787ab79bee8964b06
+      size: 3102
+    outs:
+    - path: data/prepared
+      hash: md5
+      md5: ac3ed4104116715fffb6afb84ad8fde8.dir
+      size: 972357
+      nfiles: 3
+  train:
+    cmd: python src/train.py data/prepared data/models --target-col Churn 
+      --id-col customerID --random-state 42 --experiment-name Telco_Churn_Lab1 
+      --run-name dvc_pipeline_run
+    deps:
+    - path: data/prepared
+      hash: md5
+      md5: ac3ed4104116715fffb6afb84ad8fde8.dir
+      size: 972357
+      nfiles: 3
+    - path: src/train.py
+      hash: md5
+      md5: c53c11157261ec6da9bd47fb8ed26c4f
+      size: 15762
+    outs:
+    - path: data/models
+      hash: md5
+      md5: b506a05618047efb97faf186b195c88a.dir
+      size: 41433550
+      nfiles: 7
