@@ -1,0 +1,15 @@
+type: random_forest
+
+n_estimators_min: 50
+n_estimators_max: 300
+
+max_depth_min: 3
+max_depth_max: 15
+
+min_samples_split_min: 2
+min_samples_split_max: 10
+
+min_samples_leaf_min: 1
+min_samples_leaf_max: 5
+
+class_weight: balanced

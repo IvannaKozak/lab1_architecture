@@ -1,0 +1,20 @@
+defaults:
+  - model: random_forest
+  - hpo: tpe
+  - _self_
+
+data:
+  prepared_dir: data/prepared
+  target_col: Churn
+  id_col: customerID
+
+mlflow:
+  tracking_uri: file:./mlruns
+  experiment_name: Telco_Churn_Lab3
+
+output:
+  dir: models
+
+hydra:
+  run:
+    dir: .

@@ -1,0 +1,5 @@
+sampler: tpe
+n_trials: 20
+direction: maximize
+metric: f1
+seed: 42
