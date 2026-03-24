@@ -161,7 +161,9 @@ def main(cfg: DictConfig):
         for key, value in study.best_trial.params.items():
             print(f"{key}: {value}")
 
-        X_train, X_test, y_train, y_test, numeric_cols, categorical_cols = load_data(cfg)
+        X_train, X_test, y_train, y_test, numeric_cols, categorical_cols = load_data(
+            cfg
+        )
 
         best_rf_params = {
             **study.best_trial.params,
@@ -197,7 +199,7 @@ def main(cfg: DictConfig):
 
         for metric_name, metric_value in test_metrics.items():
             mlflow.log_metric(f"final_model_{metric_name}", metric_value)
- 
+
         mlflow.set_tags(
             {
                 "sampler": cfg.hpo.sampler,

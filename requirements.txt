@@ -13,3 +13,7 @@ scikit-learn
 pandas
 numpy
 joblib
+pytest
+PyYAML
+black==23.12.1
+flake8==7.3.0

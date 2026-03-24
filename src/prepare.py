@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 from pathlib import Path
 
 import numpy as np
@@ -10,10 +9,18 @@ from sklearn.model_selection import train_test_split
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Prepare Telco dataset for training")
-    parser.add_argument("input_file", type=str, help="Path to raw CSV, e.g. data/raw/dataset.csv")
-    parser.add_argument("output_dir", type=str, help="Output directory, e.g. data/prepared")
-    parser.add_argument("--target-col", type=str, default="Churn", help="Target column name")
-    parser.add_argument("--test-size", type=float, default=0.2, help="Test size fraction")
+    parser.add_argument(
+        "input_file", type=str, help="Path to raw CSV, e.g. data/raw/dataset.csv"
+    )
+    parser.add_argument(
+        "output_dir", type=str, help="Output directory, e.g. data/prepared"
+    )
+    parser.add_argument(
+        "--target-col", type=str, default="Churn", help="Target column name"
+    )
+    parser.add_argument(
+        "--test-size", type=float, default=0.2, help="Test size fraction"
+    )
     parser.add_argument("--random-state", type=int, default=42, help="Random seed")
     return parser.parse_args()
 

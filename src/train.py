@@ -1,7 +1,5 @@
 import argparse
 import json
-import os
-import tempfile
 from pathlib import Path
 from joblib import dump
 
@@ -9,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 import matplotlib
-matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 
 import mlflow
@@ -27,46 +25,72 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay,
     RocCurveDisplay,
 )
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestClassifier
 
+matplotlib.use("Agg")
+
 # mlflow ui
+# python src/train.py data/prepared models --max-depth 2 --run-name "rf_depth_2"
+# python src/train.py data/prepared models --max-depth 4 --run-name "rf_depth_4"
+# python src/train.py data/prepared models --max-depth 6 --run-name "rf_depth_6"
+# python src/train.py data/prepared models --max-depth 10 --run-name "rf_depth_10"
+# python src/train.py data/prepared models --max-depth None --run-name "rf_depth_none"
 
-# python src/train.py --max-depth 2 --run-name "rf_depth_2"
-# python src/train.py --max-depth 4 --run-name "rf_depth_4"
-# python src/train.py --max-depth 6 --run-name "rf_depth_6"
-# python src/train.py --max-depth 10 --run-name "rf_depth_10"
-# python src/train.py --max-depth None --run-name "rf_depth_none"
-
-# dvc add data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
-# git add data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv.dvc data/raw/.gitignore
+# CI example:
+# python src/train.py data/prepared models --ci \
+#   --model-filename ci_model.joblib \
+#   --metrics-filename ci_metrics.json \
+#   --confusion-matrix-filename ci_confusion_matrix.png \
+#   --max-train-rows 1000 \
+#   --max-test-rows 400
 
 print("DVC rerun check")
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train Telco Customer Churn model with MLflow logging")
+    parser = argparse.ArgumentParser(
+        description="Train Telco Customer Churn model with MLflow logging"
+    )
 
     # DVC pipeline inputs/outputs (позиційні аргументи)
-    parser.add_argument("prepared_dir", type=str, help="Directory with prepared train/test CSVs (e.g. data/prepared)")
-    parser.add_argument("output_dir", type=str, help="Directory to save local model artifacts (e.g. data/models)")
+    parser.add_argument(
+        "prepared_dir",
+        type=str,
+        help="Directory with prepared train/test CSVs (e.g. data/prepared)",
+    )
+    parser.add_argument(
+        "output_dir",
+        type=str,
+        help="Directory to save local model artifacts (e.g. models or data/models)",
+    )
 
     # Data config
-    parser.add_argument("--target-col", type=str, default="Churn", help="Target column name")
-    parser.add_argument("--id-col", type=str, default="customerID", help="ID column to drop")
+    parser.add_argument(
+        "--target-col", type=str, default="Churn", help="Target column name"
+    )
+    parser.add_argument(
+        "--id-col", type=str, default="customerID", help="ID column to drop"
+    )
     parser.add_argument("--random-state", type=int, default=42, help="Random seed")
 
     # Model hyperparameters
-    parser.add_argument("--n-estimators", type=int, default=200, help="RandomForest n_estimators")
+    parser.add_argument(
+        "--n-estimators", type=int, default=200, help="RandomForest n_estimators"
+    )
     parser.add_argument(
         "--max-depth",
         type=str,
         default="None",
         help='RandomForest max_depth (e.g. "5", "10", "None")',
     )
-    parser.add_argument("--min-samples-split", type=int, default=2, help="RF min_samples_split")
-    parser.add_argument("--min-samples-leaf", type=int, default=1, help="RF min_samples_leaf")
+    parser.add_argument(
+        "--min-samples-split", type=int, default=2, help="RF min_samples_split"
+    )
+    parser.add_argument(
+        "--min-samples-leaf", type=int, default=1, help="RF min_samples_leaf"
+    )
     parser.add_argument(
         "--class-weight",
         type=str,
@@ -75,14 +99,62 @@ def parse_args():
     )
 
     # MLflow
-    parser.add_argument("--experiment-name", type=str, default="Telco_Churn_Lab1", help="MLflow experiment name")
-    parser.add_argument("--run-name", type=str, default=None, help="Optional MLflow run name")
-    parser.add_argument("--tracking-uri", type=str, default=None, help='Optional MLflow tracking URI (e.g. "file:./mlruns")')
+    parser.add_argument(
+        "--experiment-name",
+        type=str,
+        default="Telco_Churn_Lab1",
+        help="MLflow experiment name",
+    )
+    parser.add_argument(
+        "--run-name", type=str, default=None, help="Optional MLflow run name"
+    )
+    parser.add_argument(
+        "--tracking-uri",
+        type=str,
+        default=None,
+        help='Optional MLflow tracking URI (e.g. "file:./mlruns")',
+    )
     parser.add_argument("--author", type=str, default="Joanna", help="Author tag")
-    parser.add_argument("--dataset-version", type=str, default="v1", help="Dataset version tag")
+    parser.add_argument(
+        "--dataset-version", type=str, default="v1", help="Dataset version tag"
+    )
 
     # Artifact settings
-    parser.add_argument("--top-k-features", type=int, default=20, help="Top K features for importance plot")
+    parser.add_argument(
+        "--top-k-features",
+        type=int,
+        default=20,
+        help="Top K features for importance plot",
+    )
+
+    # CI mode / custom artifact names
+    parser.add_argument(
+        "--ci", action="store_true", help="Run in CI mode with stable artifact names"
+    )
+    parser.add_argument(
+        "--max-train-rows", type=int, default=None, help="Optional cap for train rows"
+    )
+    parser.add_argument(
+        "--max-test-rows", type=int, default=None, help="Optional cap for test rows"
+    )
+    parser.add_argument(
+        "--model-filename",
+        type=str,
+        default="model.joblib",
+        help="Output model filename",
+    )
+    parser.add_argument(
+        "--metrics-filename",
+        type=str,
+        default="metrics.json",
+        help="Output metrics filename",
+    )
+    parser.add_argument(
+        "--confusion-matrix-filename",
+        type=str,
+        default="confusion_matrix_test.png",
+        help="Output confusion matrix filename",
+    )
 
     return parser.parse_args()
 
@@ -124,13 +196,14 @@ def prepare_target(df: pd.DataFrame, target_col: str) -> pd.Series:
         y = y_raw.astype(int)
 
     if y.isna().any():
-        raise ValueError("Target column contains NaN after mapping. Please check target values.")
+        raise ValueError(
+            "Target column contains NaN after mapping. Please check target values."
+        )
 
     return y.astype(int)
 
 
 def build_pipeline(numeric_cols, categorical_cols, rf_params):
-    # заповнення пропусків + one-hot для категоріальних
     numeric_transformer = Pipeline(
         steps=[
             ("imputer", SimpleImputer(strategy="median")),
@@ -201,14 +274,11 @@ def save_roc_curve_plot(y_true, y_proba, output_path: Path):
 
 
 def get_feature_names(preprocessor: ColumnTransformer):
-    """Повертає назви ознак після ColumnTransformer + OneHotEncoder."""
     feature_names = []
 
-    # Числові
     num_cols = preprocessor.transformers_[0][2]
     feature_names.extend(list(num_cols))
 
-    # Категоріальні (через OneHot)
     cat_pipeline = preprocessor.named_transformers_["cat"]
     onehot = cat_pipeline.named_steps["onehot"]
     cat_cols = preprocessor.transformers_[1][2]
@@ -218,7 +288,9 @@ def get_feature_names(preprocessor: ColumnTransformer):
     return feature_names
 
 
-def save_feature_importance_plot(pipeline: Pipeline, output_path: Path, top_k: int = 20):
+def save_feature_importance_plot(
+    pipeline: Pipeline, output_path: Path, top_k: int = 20
+):
     model = pipeline.named_steps["model"]
     preprocessor = pipeline.named_steps["preprocessor"]
 
@@ -263,7 +335,9 @@ def main():
     test_path = prepared_dir / "test.csv"
 
     if not train_path.exists():
-        raise FileNotFoundError(f"Prepared train file not found: {train_path.resolve()}")
+        raise FileNotFoundError(
+            f"Prepared train file not found: {train_path.resolve()}"
+        )
     if not test_path.exists():
         raise FileNotFoundError(f"Prepared test file not found: {test_path.resolve()}")
 
@@ -278,6 +352,18 @@ def main():
     # 1) Load prepared data
     df_train = pd.read_csv(train_path)
     df_test = pd.read_csv(test_path)
+
+    if args.max_train_rows is not None:
+        df_train = df_train.sample(
+            n=min(args.max_train_rows, len(df_train)),
+            random_state=args.random_state,
+        )
+
+    if args.max_test_rows is not None:
+        df_test = df_test.sample(
+            n=min(args.max_test_rows, len(df_test)),
+            random_state=args.random_state,
+        )
 
     # Гарантуємо чистоту колонок після CSV
     df_train.columns = [c.strip() for c in df_train.columns]
@@ -297,7 +383,6 @@ def main():
     numeric_cols = X_train.select_dtypes(include=[np.number]).columns.tolist()
     categorical_cols = X_train.select_dtypes(exclude=[np.number]).columns.tolist()
 
-    # Параметри RandomForest
     rf_params = {
         "n_estimators": args.n_estimators,
         "max_depth": max_depth,
@@ -311,7 +396,6 @@ def main():
     pipeline = build_pipeline(numeric_cols, categorical_cols, rf_params)
 
     with mlflow.start_run(run_name=args.run_name):
-        # ---- Tags ----
         mlflow.set_tags(
             {
                 "author": args.author,
@@ -319,11 +403,11 @@ def main():
                 "dataset_version": args.dataset_version,
                 "target_col": args.target_col,
                 "model_type": "RandomForestClassifier",
-                "lab": "Lab1_MLOps",
+                "lab": "Lab4_CI_CD" if args.ci else "Lab1_MLOps",
+                "ci_mode": str(args.ci),
             }
         )
 
-        # ---- Params ----
         params_to_log = {
             "prepared_dir": str(prepared_dir),
             "output_dir": str(output_dir),
@@ -341,13 +425,17 @@ def main():
             "n_features_before_encoding": int(X_train.shape[1]),
             "n_numeric_features": int(len(numeric_cols)),
             "n_categorical_features": int(len(categorical_cols)),
+            "ci_mode": args.ci,
+            "model_filename": args.model_filename,
+            "metrics_filename": args.metrics_filename,
+            "confusion_matrix_filename": args.confusion_matrix_filename,
+            "max_train_rows": args.max_train_rows,
+            "max_test_rows": args.max_test_rows,
         }
         mlflow.log_params(params_to_log)
 
-        # ---- Fit ----
         pipeline.fit(X_train, y_train)
 
-        # ---- Predictions ----
         y_train_pred = pipeline.predict(X_train)
         y_test_pred = pipeline.predict(X_test)
 
@@ -357,7 +445,6 @@ def main():
             y_train_proba = pipeline.predict_proba(X_train)[:, 1]
             y_test_proba = pipeline.predict_proba(X_test)[:, 1]
 
-        # ---- Metrics ----
         train_metrics = compute_metrics(y_train, y_train_pred, y_train_proba)
         test_metrics = compute_metrics(y_test, y_test_pred, y_test_proba)
 
@@ -366,28 +453,25 @@ def main():
         for k, v in test_metrics.items():
             mlflow.log_metric(f"test_{k}", v)
 
-        # ---- Local artifacts for DVC ----
-        # Модель
-        model_path = output_dir / "model.joblib"
+        model_path = output_dir / args.model_filename
         dump(pipeline, model_path)
 
-        # Метрики
-        metrics_path = output_dir / "metrics.json"
-        with open(metrics_path, "w", encoding="utf-8") as f:
-            json.dump(
-                {"train_metrics": train_metrics, "test_metrics": test_metrics},
-                f,
-                ensure_ascii=False,
-                indent=2,
-            )
+        metrics_payload = {
+            "train_metrics": train_metrics,
+            "test_metrics": test_metrics,
+            "quality_gate_metric_name": "f1",
+            "quality_gate_metric_value": test_metrics["f1"],
+        }
 
-        # Параметри
+        metrics_path = output_dir / args.metrics_filename
+        with open(metrics_path, "w", encoding="utf-8") as f:
+            json.dump(metrics_payload, f, ensure_ascii=False, indent=2)
+
         params_path = output_dir / "train_params.json"
         with open(params_path, "w", encoding="utf-8") as f:
             json.dump(rf_params, f, ensure_ascii=False, indent=2)
 
-        # ---- Plots (saved locally + logged to MLflow) ----
-        cm_path = output_dir / "confusion_matrix_test.png"
+        cm_path = output_dir / args.confusion_matrix_filename
         save_confusion_matrix_plot(y_test, y_test_pred, cm_path)
         mlflow.log_artifact(str(cm_path), artifact_path="plots")
 
@@ -405,7 +489,6 @@ def main():
         if fi_logged:
             mlflow.log_artifact(str(fi_path), artifact_path="plots")
 
-        # Summary JSON (локально + MLflow)
         summary = {
             "train_metrics": train_metrics,
             "test_metrics": test_metrics,
@@ -420,24 +503,31 @@ def main():
                 "categorical": len(categorical_cols),
                 "before_encoding": int(X_train.shape[1]),
             },
+            "ci_mode": args.ci,
+            "artifacts": {
+                "model_path": str(model_path),
+                "metrics_path": str(metrics_path),
+                "confusion_matrix_path": str(cm_path),
+            },
         }
         summary_path = output_dir / "run_summary.json"
         with open(summary_path, "w", encoding="utf-8") as f:
             json.dump(summary, f, ensure_ascii=False, indent=2)
 
         mlflow.log_artifact(str(summary_path), artifact_path="reports")
+        mlflow.log_artifact(str(metrics_path), artifact_path="reports")
+        mlflow.log_artifact(str(model_path), artifact_path="reports")
 
-        # ---- MLflow model ----
         mlflow.sklearn.log_model(
             sk_model=pipeline,
             artifact_path="model",
             registered_model_name=None,
         )
 
-        # ---- Print ----
         print("\n✅ Training completed successfully")
         print(f"Saved local model to: {model_path}")
         print(f"Saved metrics to: {metrics_path}")
+        print(f"Saved confusion matrix to: {cm_path}")
 
         print("Train metrics:")
         for k, v in train_metrics.items():

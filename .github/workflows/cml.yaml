@@ -1,0 +1,98 @@
+name: Model CI (Train, Test, Report)
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    env:
+      F1_THRESHOLD: "0.50"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install cml flake8 black
+
+      - name: Pull data with DVC
+        run: dvc pull
+
+      - name: Lint (flake8)
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Format check (black)
+        run: |
+          black . --check
+
+      - name: Run pre-train tests
+        run: |
+          pytest tests/test_pretrain.py -v
+
+      - name: Train model in CI mode
+        run: |
+          python src/train.py data/prepared models --ci \
+            --model-filename ci_model.joblib \
+            --metrics-filename ci_metrics.json \
+            --confusion-matrix-filename ci_confusion_matrix.png \
+            --max-train-rows 1000 \
+            --max-test-rows 400 \
+            --run-name ci_train
+
+      - name: Run post-train tests (Quality Gate)
+        env:
+          F1_THRESHOLD: ${{ env.F1_THRESHOLD }}
+        run: |
+          pytest tests/test_posttrain.py -v
+
+      - name: Create CML report (PR only)
+        if: github.event_name == 'pull_request'
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## Model Metrics" > report.md
+          python - <<'PY' >> report.md
+          import json
+          with open("models/ci_metrics.json", "r", encoding="utf-8") as f:
+              m = json.load(f)
+          print("| metric | value |")
+          print("|---|---:|")
+          for k, v in m["test_metrics"].items():
+              print(f"| {k} | {v:.4f} |")
+          print()
+          print(f"**Quality Gate metric:** {m['quality_gate_metric_name']} = {m['quality_gate_metric_value']:.4f}")
+          PY
+          echo "" >> report.md
+          echo "## Visualization" >> report.md
+          cml publish models/ci_confusion_matrix.png --md >> report.md
+          echo "" >> report.md
+          echo "## Quality Gate" >> report.md
+          echo "Threshold: ${F1_THRESHOLD}" >> report.md
+          cml comment create report.md
+
+      - name: Upload model artifact (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-model
+          path: |
+            models/ci_model.joblib
+            models/ci_metrics.json
+            models/ci_confusion_matrix.png
