@@ -15,6 +15,7 @@ from train import prepare_target, build_pipeline, compute_metrics
 # запуск
 # TPE: "python src/optimize.py"
 # Random: "python src/optimize.py hpo=random"
+# mlflow ui
 
 
 def load_data(cfg: DictConfig):
@@ -196,7 +197,7 @@ def main(cfg: DictConfig):
 
         for metric_name, metric_value in test_metrics.items():
             mlflow.log_metric(f"final_model_{metric_name}", metric_value)
-
+ 
         mlflow.set_tags(
             {
                 "sampler": cfg.hpo.sampler,

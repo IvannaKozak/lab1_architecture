@@ -111,12 +111,11 @@ hydra:
   overrides:
     hydra:
     - hydra.mode=RUN
-    task:
-    - hpo=random
+    task: []
   job:
     name: optimize
     chdir: null
-    override_dirname: hpo=random
+    override_dirname: ''
     id: ???
     num: ???
     config_name: config
@@ -143,7 +142,7 @@ hydra:
       provider: schema
     output_dir: /Users/ivanka/Documents/UNIVER/Semester8/Lab1_arhitecture
     choices:
-      hpo: random
+      hpo: tpe
       model: random_forest
       hydra/env: default
       hydra/callbacks: null

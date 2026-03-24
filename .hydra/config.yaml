@@ -10,7 +10,7 @@ model:
   min_samples_leaf_max: 5
   class_weight: balanced
 hpo:
-  sampler: random
+  sampler: tpe
   n_trials: 20
   direction: maximize
   metric: f1
