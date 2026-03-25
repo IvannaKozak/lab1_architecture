@@ -23,7 +23,9 @@ def main():
     with mlflow.start_run(run_name="airflow_register_model"):
         mlflow.log_artifact(str(model_path), artifact_path="model_artifact")
 
-        model_uri = f"runs:/{mlflow.active_run().info.run_id}/model_artifact/{model_path.name}"
+        model_uri = (
+            f"runs:/{mlflow.active_run().info.run_id}/model_artifact/{model_path.name}"
+        )
 
         registered_model = mlflow.register_model(
             model_uri=model_uri,

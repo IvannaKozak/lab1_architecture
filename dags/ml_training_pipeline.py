@@ -45,7 +45,6 @@ with DAG(
     catchup=False,
     tags=["lab5", "ml", "airflow"],
 ) as dag:
-
     check_data = PythonOperator(
         task_id="check_data",
         python_callable=check_data_exists,
@@ -82,10 +81,7 @@ with DAG(
 
     register_model = BashOperator(
         task_id="register_model",
-        bash_command=(
-            f"cd {PROJECT_DIR} && "
-            "python src/register_model.py"
-        ),
+        bash_command=(f"cd {PROJECT_DIR} && " "python src/register_model.py"),
     )
 
     stop_pipeline = EmptyOperator(
@@ -100,4 +96,3 @@ with DAG(
     check_data >> prepare_data >> train_model >> evaluate_and_branch
     evaluate_and_branch >> register_model >> finish
     evaluate_and_branch >> stop_pipeline >> finish
-    
