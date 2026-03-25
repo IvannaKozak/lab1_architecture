@@ -34,8 +34,8 @@ jobs:
       - name: Setup CML
         uses: iterative/setup-cml@v2
 
-      - name: Pull data with DVC
-        run: dvc pull
+      # - name: Pull data with DVC
+      #   run: dvc pull
 
       - name: Lint (flake8)
         run: |

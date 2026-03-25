@@ -1,0 +1,10 @@
+{
+  "input_file": "data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv",
+  "rows_total": 7043,
+  "cols_total": 21,
+  "rows_train": 5634,
+  "rows_test": 1409,
+  "target_col": "Churn",
+  "test_size": 0.2,
+  "random_state": 42
+}
