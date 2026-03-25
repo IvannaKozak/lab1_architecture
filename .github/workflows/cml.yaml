@@ -29,7 +29,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install cml flake8 black
+          pip install flake8 black
+
+      - name: Setup CML
+        uses: iterative/setup-cml@v2
 
       - name: Pull data with DVC
         run: dvc pull
