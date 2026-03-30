@@ -7,7 +7,7 @@ from mlflow.tracking import MlflowClient
 
 MODEL_PATH = "models/ci_model.joblib"
 MODEL_NAME = "telco_churn_model"
-TRACKING_URI = "file:./mlruns"
+TRACKING_URI = "file:/opt/airflow/project/mlruns"
 EXPERIMENT_NAME = "Telco_Churn_Lab5"
 
 

@@ -1,0 +1,17 @@
+[2026-03-25T22:52:17.381+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2026-03-25T22:52:17.392+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ml_training_pipeline.check_data manual__2026-03-25T22:52:15.758621+00:00 [queued]>
+[2026-03-25T22:52:17.395+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ml_training_pipeline.check_data manual__2026-03-25T22:52:15.758621+00:00 [queued]>
+[2026-03-25T22:52:17.395+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2026-03-25T22:52:17.401+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): check_data> on 2026-03-25 22:52:15.758621+00:00
+[2026-03-25T22:52:17.402+0000] {standard_task_runner.py:64} INFO - Started process 269 to run task
+[2026-03-25T22:52:17.403+0000] {standard_task_runner.py:90} INFO - Running: ['airflow', 'tasks', 'run', 'ml_training_pipeline', 'check_data', 'manual__2026-03-25T22:52:15.758621+00:00', '--job-id', '2', '--raw', '--subdir', 'DAGS_FOLDER/ml_training_pipeline.py', '--cfg-path', '/tmp/tmprmo8hxn5']
+[2026-03-25T22:52:17.404+0000] {standard_task_runner.py:91} INFO - Job 2: Subtask check_data
+[2026-03-25T22:52:17.422+0000] {task_command.py:426} INFO - Running <TaskInstance: ml_training_pipeline.check_data manual__2026-03-25T22:52:15.758621+00:00 [running]> on host 8f1cf0a892c9
+[2026-03-25T22:52:17.448+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='airflow' AIRFLOW_CTX_DAG_ID='ml_training_pipeline' AIRFLOW_CTX_TASK_ID='check_data' AIRFLOW_CTX_EXECUTION_DATE='2026-03-25T22:52:15.758621+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-03-25T22:52:15.758621+00:00'
+[2026-03-25T22:52:17.448+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2026-03-25T22:52:17.459+0000] {python.py:237} INFO - Done. Returned value was: None
+[2026-03-25T22:52:17.459+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2026-03-25T22:52:17.461+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=ml_training_pipeline, task_id=check_data, run_id=manual__2026-03-25T22:52:15.758621+00:00, execution_date=20260325T225215, start_date=20260325T225217, end_date=20260325T225217
+[2026-03-25T22:52:17.505+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2026-03-25T22:52:17.514+0000] {taskinstance.py:3503} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-03-25T22:52:17.515+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

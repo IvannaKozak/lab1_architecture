@@ -25,9 +25,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 USER airflow
 WORKDIR /opt/airflow
 
-COPY --from=builder /opt/airflow /opt/airflow
+# Копіюємо саме Python environment Airflow
+COPY --from=builder /home/airflow/.local /home/airflow/.local
 
-ENV PATH="/opt/airflow/.local/bin:${PATH}"
+ENV PATH="/home/airflow/.local/bin:${PATH}"
 
 COPY . /opt/airflow/project
 

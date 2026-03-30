@@ -65,6 +65,8 @@ with DAG(
         bash_command=(
             f"cd {PROJECT_DIR} && "
             "python src/train.py data/prepared models --ci "
+            "--tracking-uri file:/opt/airflow/project/mlruns "
+            "--experiment-name Telco_Churn_Lab5 "
             "--model-filename ci_model.joblib "
             "--metrics-filename ci_metrics.json "
             "--confusion-matrix-filename ci_confusion_matrix.png "

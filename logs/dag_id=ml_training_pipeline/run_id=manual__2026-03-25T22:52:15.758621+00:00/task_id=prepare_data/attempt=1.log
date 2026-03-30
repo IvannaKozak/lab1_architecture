@@ -1,0 +1,39 @@
+[2026-03-25T22:52:18.690+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2026-03-25T22:52:18.699+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ml_training_pipeline.prepare_data manual__2026-03-25T22:52:15.758621+00:00 [queued]>
+[2026-03-25T22:52:18.701+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ml_training_pipeline.prepare_data manual__2026-03-25T22:52:15.758621+00:00 [queued]>
+[2026-03-25T22:52:18.701+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2026-03-25T22:52:18.707+0000] {taskinstance.py:2330} INFO - Executing <Task(BashOperator): prepare_data> on 2026-03-25 22:52:15.758621+00:00
+[2026-03-25T22:52:18.708+0000] {standard_task_runner.py:64} INFO - Started process 284 to run task
+[2026-03-25T22:52:18.710+0000] {standard_task_runner.py:90} INFO - Running: ['airflow', 'tasks', 'run', 'ml_training_pipeline', 'prepare_data', 'manual__2026-03-25T22:52:15.758621+00:00', '--job-id', '3', '--raw', '--subdir', 'DAGS_FOLDER/ml_training_pipeline.py', '--cfg-path', '/tmp/tmpkjjcnq0f']
+[2026-03-25T22:52:18.711+0000] {standard_task_runner.py:91} INFO - Job 3: Subtask prepare_data
+[2026-03-25T22:52:18.725+0000] {task_command.py:426} INFO - Running <TaskInstance: ml_training_pipeline.prepare_data manual__2026-03-25T22:52:15.758621+00:00 [running]> on host 8f1cf0a892c9
+[2026-03-25T22:52:18.749+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='airflow' AIRFLOW_CTX_DAG_ID='ml_training_pipeline' AIRFLOW_CTX_TASK_ID='prepare_data' AIRFLOW_CTX_EXECUTION_DATE='2026-03-25T22:52:15.758621+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-03-25T22:52:15.758621+00:00'
+[2026-03-25T22:52:18.749+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2026-03-25T22:52:18.753+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2026-03-25T22:52:18.753+0000] {subprocess.py:75} INFO - Running command: ['/usr/bin/bash', '-c', 'cd /opt/airflow/project && python src/prepare.py data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv data/prepared']
+[2026-03-25T22:52:18.757+0000] {subprocess.py:86} INFO - Output:
+[2026-03-25T22:52:19.504+0000] {subprocess.py:93} INFO - Traceback (most recent call last):
+[2026-03-25T22:52:19.505+0000] {subprocess.py:93} INFO -   File "/opt/airflow/project/src/prepare.py", line 7, in <module>
+[2026-03-25T22:52:19.508+0000] {subprocess.py:93} INFO -     from sklearn.model_selection import train_test_split
+[2026-03-25T22:52:19.508+0000] {subprocess.py:93} INFO - ModuleNotFoundError: No module named 'sklearn'
+[2026-03-25T22:52:19.534+0000] {subprocess.py:97} INFO - Command exited with return code 1
+[2026-03-25T22:52:19.534+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2026-03-25T22:52:19.538+0000] {taskinstance.py:2905} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/baseoperator.py", line 401, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/operators/bash.py", line 243, in execute
+    raise AirflowException(
+airflow.exceptions.AirflowException: Bash command failed. The command returned a non-zero exit code 1.
+[2026-03-25T22:52:19.540+0000] {taskinstance.py:1206} INFO - Marking task as FAILED. dag_id=ml_training_pipeline, task_id=prepare_data, run_id=manual__2026-03-25T22:52:15.758621+00:00, execution_date=20260325T225215, start_date=20260325T225218, end_date=20260325T225219
+[2026-03-25T22:52:19.546+0000] {standard_task_runner.py:110} ERROR - Failed to execute job 3 for task prepare_data (Bash command failed. The command returned a non-zero exit code 1.; 284)
+[2026-03-25T22:52:19.549+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 1
+[2026-03-25T22:52:19.556+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-03-25T22:52:19.559+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
